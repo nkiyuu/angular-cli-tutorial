@@ -503,6 +503,127 @@ Angularでは簡単に状態応じてクラスの付与と除去ができるよ�
 
 
 
+## 5章 Master/Detail コンポーネント
 
+この段階では`HeroesComponent`でヒーローの一覧とヒーローの詳細の両方を表示しています．
+
+すべてのものを一つのコンポーネントで管理するのはアプリが大きくなってきたときにメンテナンスが大変になります．大きいコンポーネントを特定のタスクなどに特化した小さいサブコンポーネントに分割することで管理をしやすくします．
+
+この章ではヒーローの詳細ページを`HeroDetailComponent`として再利用可能なコンポーネントに分割します．
+
+このようにすることで，`HeroesComponent` はヒーローの一覧を提供するコンポーネント，`HeroDetailComponent`はヒーローの詳細情報を表示するコンポーネントといったように特定の役割に分割することができます．
+
+### HeroDetailComponentを作成しよう
+
+以下のコマンドを叩いて`HeroDetailComponent` を作成する．
+
+``` shell
+ng generate component hero-detail
+```
+
+すると，`HeroDetailComponent`のファイルが作成され，`AppModule`内で宣言される．
+
+#### テンプレートの編集
+
+`HeroesComponent`のテンプレートの下部に記述したヒーロ詳細を表示する部分を先ほど生成した`HeroDetailComponent`のテンプレートにカット＆ペーストしてください
+
+貼り付けたHTMLでは`selectedHero`を参照しています．しかし，新しく作成した`HeroDetailComponent`では選択されたヒーローだけではなく，どんなヒーローでもその詳細を表示できていいはずです．なので，すべての`selectedHero`を`hero`で置き換えます．
+
+`HeroDetailComponent`のテンプレートは以下のようになっているはずです．
+
+```html
+<div *ngIf="hero">
+
+  <h2>{{ hero.name | uppercase }} Details</h2>
+  <div><span>id: </span>{{hero.id}}</div>
+  <div>
+    <label>name:
+      <input [(ngModel)]="hero.name" placeholder="name"/>
+    </label>
+  </div>
+
+</div>
+```
+
+#### @Input() hero変数を追加する
+
+`HeroDetailComponent`テンプレートは`Hero` 型のコンポーネント中の`hero`変数にバインドされます．
+
+`HeroDetailComponent`クラスで`Hero`をインポートします．
+
+```Typescript
+import { Hero } from '../hero';
+```
+
+`hero`変数に対して`@Input()`のアノテーションをつけることによって，Input propertyとして宣言することができ，外部のコンポーネントである`HeroesComponent`から以下のような形でバインドすることが可能です．
+
+```html
+<app-hero-detail [hero]="selectedHero"></app-hero-detail>
+```
+
+`@angular/core`で定義されている`Input`を`hero-detail.component.ts`中でインポートします．
+
+```Typescript
+import { Component, OnInit, Input } from '@angular/core';
+```
+
+そしてクラスの中で`@Input()`をつけて`hero`変数を宣言します．
+
+```Typescript
+@Input() hero: Hero;
+```
+
+`HeroDetailComponent`の変更は以上になります．このコンポーネントは`hero`オブジェクトを受け取ってそれを表示するという単純な機能のみを持ったコンポーネントになります．
+
+### HeroDetailComponentを表示する
+
+`HeroesComponent`テンプレート中のソースコードを切り取るまでは，ヒーローの詳細を`HeroesComponent` で定義していました．今回，それを`HeroDetailComponent`で置き換えます．
+
+二つのコンポーネントには親子関係があります．`HeroesComponent`が親で，常にユーザが選択したヒーローの詳細を表示できるように`HeroDetailComponent`に向けて選択したヒーローオブジェクトを送ります．
+
+`HeroesComponent`のテンプレートを編集していきましょう
+
+#### HeroesComponentテンプレートの更新
+
+`HeroDetailComponent`のセレクターは`<app-hero-detail>`です．`HeroesComponent`の一番下に`<app-hero-detail>`タグを追加しましょう．その部分にヒーローの詳細が表示されます．
+
+以下のようにソースコードに記述することで`hero`変数と`selectedHero`を対応させます．
+
+```html
+<app-hero-detail [hero]="selectedHero"></app-hero-detail>
+```
+
+`[hero]="selectedHero"`はangularの変数のバインディングの記法です．
+
+これによって`HeroesComponent`の`selectedHero`を対象の要素の`hero`に対応づけ，`HeroDetailComponent`の`hero`に選択されたヒーローのオブジェクトが渡されます．
+
+ユーザがヒーローをクリックすると`selectedHero`が更新されます．すると対応づけされてる`hero`も更新されるため，`HeroDetailComponent`で表示されるヒーローも新しく選択されたヒーローに更新されます．
+
+`HeroesComponent`のテンプレートは以下のようになります．
+
+```html
+<h2>My Heroes</h2>
+
+<ul class="heroes">
+  <li *ngFor="let hero of heroes"
+    [class.selected]="hero === selectedHero"
+    (click)="onSelect(hero)">
+    <span class="badge">{{hero.id}}</span> {{hero.name}}
+  </li>
+</ul>
+
+<app-hero-detail [hero]="selectedHero"></app-hero-detail>
+```
+
+### 何が嬉しいの？
+
+変更する前では，ユーザーがヒーローの名前をクリックすると常にその詳細をヒーローリストの下に表示していました．変更後ではそのヒーローの詳細の表示を`HeroesComponent`の代わりに`HeroDetailComponent`が行なっています．
+
+もともとの`HeroesComponent` を今までのように２つのコンポーネントに切り分けることによって，以下のような利点があります．
+
+1. 機能を分割することで`HeroesComponent`を単純化することができる
+2. `HeroesComponent`に触ることなく，`HeroDetailComponent`のエディターをリッチなものに更新するなどの更新が行える
+3. ヒーローの詳細画面をいじることなく，`HeroesComponent`の機能追加などを行える
+4. `HeroDetailComponent`を将来作る別のコンポーネント内でも再利用することができる．
 
 f
