@@ -626,4 +626,31 @@ import { Component, OnInit, Input } from '@angular/core';
 3. ヒーローの詳細画面をいじることなく，`HeroesComponent`の機能追加などを行える
 4. `HeroDetailComponent`を将来作る別のコンポーネント内でも再利用することができる．
 
+## 6章　Services
+
+現状の`HeroesComponent`は仮のヒーローデータを取得して表示しています．
+
+この後の章でリファクタリングをしますが，`HeroesComponent`はビューのサポートに注力します．
+
+### なぜServiceを用いるのか
+
+コンポーネントはデータを直接取得したり保存したりするべきではありません．コンポーネントはデータの表示に専念し，データへのアクセスはサービスに任せてしまうべきです．
+
+このチュートリアルでは，すべてのアプリーケションクラスでヒーローのデータを取得可能にする`HeroesService`を作成します．また`new`を使ってサービスを作るのではなく，Angularのdependency injection を用いて，`HeroesComponent`コンストラクターに提供します．
+
+`Service`を用いることで簡単にクラス間でお互いに関連がなかったとしても情報の共有が行えます．この章では`MessageService`を作り以下の二箇所にinjectします．
+
+1. メッセージを送るのに`HeroService`
+2. メッセージを表示するのに`MessagesComponent`
+
+### HeroServiceを作成する
+
+Angular CLI を使って`hero`サービスを作成します．
+
+```shell
+ng generate service hero
+```
+
+
+
 f
